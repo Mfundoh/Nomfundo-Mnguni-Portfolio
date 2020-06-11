@@ -1,0 +1,309 @@
+In [57]:
+
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA, FastICA
+from sklearn.preprocessing import scale
+%matplotlib inline
+
+In [58]:
+
+train=pd.read_csv(r'C:\Users\Student 20\Desktop\train.csv')
+test=pd.read_csv(r'C:\Users\Student 20\Desktop\test.csv')
+
+In [59]:
+
+test.head()
+
+Out[59]:
+	ID 	X0 	X1 	X2 	X3 	X4 	X5 	X6 	X8 	X10 	... 	X375 	X376 	X377
+X378 	X379 	X380 	X382 	X383 	X384 	X385
+0 	1 	az 	v 	n 	f 	d 	t 	a 	w 	0 	... 	0 	0 	0 	1 	0 	0 	0 	0 	0 	0
+1 	2 	t 	b 	ai 	a 	d 	b 	g 	y 	0 	... 	0 	0 	1 	0 	0 	0 	0 	0 	0 	0
+2 	3 	az 	v 	as 	f 	d 	a 	j 	j 	0 	... 	0 	0 	0 	1 	0 	0 	0 	0 	0 	0
+3 	4 	az 	l 	n 	f 	d 	z 	l 	n 	0 	... 	0 	0 	0 	1 	0 	0 	0 	0 	0 	0
+4 	5 	w 	s 	as 	c 	d 	y 	i 	m 	0 	... 	1 	0 	0 	0 	0 	0 	0 	0 	0 	0
+
+5 rows × 377 columns
+
+In [60]:
+
+print('Size of training set: {}rows and {}columns'.format(*train.shape))
+
+Size of training set: 4209rows and 378columns
+
+In [61]:
+
+train.head()
+
+Out[61]:
+	ID 	y 	X0 	X1 	X2 	X3 	X4 	X5 	X6 	X8 	... 	X375 	X376 	X377 	X378
+X379 	X380 	X382 	X383 	X384 	X385
+0 	0 	130.81 	k 	v 	at 	a 	d 	u 	j 	o 	... 	0 	0 	1 	0 	0 	0 	0 	0 	0 	0
+1 	6 	88.53 	k 	t 	av 	e 	d 	y 	l 	o 	... 	1 	0 	0 	0 	0 	0 	0 	0 	0 	0
+2 	7 	76.26 	az 	w 	n 	c 	d 	x 	j 	x 	... 	0 	0 	0 	0 	0 	0 	1 	0 	0 	0
+3 	9 	80.62 	az 	t 	n 	f 	d 	x 	l 	e 	... 	0 	0 	0 	0 	0 	0 	0 	0 	0 	0
+4 	13 	78.02 	az 	v 	n 	f 	d 	h 	d 	n 	... 	0 	0 	0 	0 	0 	0 	0 	0 	0 	0
+
+5 rows × 378 columns
+
+In [22]:
+
+print(train.shape)
+print(test.shape)
+
+(4209, 378)
+(4209, 377)
+
+In [23]:
+
+y_train=train['y'].values
+
+In [24]:
+
+cols=[c for c in train.columns if 'X' in c]
+print('Number of features: {}'.format(len(cols)))
+
+Number of features: 376
+
+In [25]:
+
+print('feature types:')
+train[cols].dtypes.value_counts()
+
+feature types:
+
+Out[25]:
+
+int64     368
+object      8
+dtype: int64
+
+In [26]:
+
+counts= [[],[],[]]
+for c in cols:
+    tipe=train[c].dtype
+    unik= len(np.unique(train[c]))
+    if unik==1:
+        counts[1].append(c)
+    elif unik==2 and tipe==np.int64:
+        counts[1].append(c)
+    else:
+        counts[2].append(c)
+
+In [27]:
+
+print('Çonstant feature: {} Binary feature: {} Catagorical feature: {}\n'.format(*[len(c) for c in counts]))
+print('Constant feature:',counts[0])
+print('Catagorical feature:', counts[2])
+
+Çonstant feature: 0 Binary feature: 368 Catagorical feature: 8
+
+Constant feature: []
+Catagorical feature: ['X0', 'X1', 'X2', 'X3', 'X4', 'X5', 'X6', 'X8']
+
+In [28]:
+
+functional_columns=list(set(train.columns)-set(['ID','y']))
+id_test=test['ID'].values
+x_train=train[functional_columns]
+x_test= test[functional_columns]
+
+In [29]:
+
+def check_missing_values(df):
+    if df.isnull().any().any():
+        print("There are missing values in the dataframe")
+    else:
+        print("There are no missing values in the dataframe")
+check_missing_values(x_train)
+check_missing_values(x_test)
+
+There are no missing values in the dataframe
+There are no missing values in the dataframe
+
+In [67]:
+
+from sklearn import model_selection ,preprocessing
+from sklearn import preprocessing
+le = preprocessing.LabelEncoder()
+
+In [69]:
+
+for f in x_test.columns:
+    if x_test[f].dtype=='object':
+        lbl = preprocessing.LabelEncoder()
+        lbl.fit(list(x_test[f].values))
+        x_test[f]= lbl.transform(list(x_test[f].values))
+
+In [70]:
+
+print('feature types:')
+x_train[cols].dtypes.value_counts()
+
+feature types:
+
+Out[70]:
+
+float64    376
+dtype: int64
+
+In [71]:
+
+x_test[cols].dtypes.value_counts()
+
+Out[71]:
+
+int64    376
+dtype: int64
+
+In [72]:
+
+x_test.head()
+
+Out[72]:
+	X229 	X378 	X351 	X270 	X61 	X333 	X295 	X80 	X12 	X6 	... 	X196
+X376 	X239 	X286 	X355 	X213 	X322 	X366 	X256 	X79
+0 	0 	1 	0 	0 	1 	0 	0 	1 	0 	0 	... 	0 	0 	0 	1 	0 	0 	0 	0 	1 	0
+1 	1 	0 	0 	0 	1 	0 	0 	1 	0 	6 	... 	0 	0 	0 	0 	0 	0 	0 	0 	0 	0
+2 	0 	1 	0 	0 	1 	0 	0 	1 	0 	9 	... 	0 	0 	0 	0 	0 	0 	0 	0 	0 	0
+3 	1 	1 	0 	0 	1 	0 	0 	1 	0 	11 	... 	0 	0 	0 	1 	0 	0 	0 	0 	1 	0
+4 	1 	0 	1 	0 	1 	0 	0 	1 	0 	8 	... 	0 	0 	0 	0 	0 	0 	0 	0 	0 	0
+
+5 rows × 376 columns
+
+In [73]:
+
+n_comp=12
+pca= PCA(n_components=n_comp, random_state=420)
+pca2_results_train= pca.fit_transform(x_train)
+pca2_results_test =pca.transform(x_test)
+
+In [74]:
+
+import xgboost as xgb
+from sklearn.metrics import r2_score
+from sklearn.model_selection import train_test_split
+
+In [76]:
+
+x_train, x_valid, y_train, y_valid= train_test_split(pca2_results_train, y_train, test_size=0.2, random_state=4242)
+
+In [77]:
+
+d_train= xgb.DMatrix(x_train, label=y_train)
+d_valid= xgb.DMatrix(x_valid, label=y_valid)
+d_test=xgb.DMatrix(pca2_results_test)
+
+In [87]:
+
+params ={}
+params['objective']='reg:squarederror'
+params['eta']= 0.02
+params['max_depth']=4
+
+In [88]:
+
+def xgb_r2_score(preds, dtrain):
+    labels= dtrain.get_label()
+    return 'r2', r2_score(labels, preds)
+
+In [89]:
+
+watchlist=[(d_train, 'train'),(d_valid, 'valid')]
+
+In [90]:
+
+NMF= xgb.train(params, d_train, 1000, watchlist, early_stopping_rounds=50, feval=xgb_r2_score,maximize=True, verbose_eval=10)
+
+[0]	train-rmse:99.1484	valid-rmse:98.263	train-r2:-58.353	valid-r2:-67.6375
+Multiple eval metrics have been passed: 'valid-r2' will be used for early stopping.
+
+Will train until valid-r2 hasn't improved in 50 rounds.
+[10]	train-rmse:81.2766	valid-rmse:80.3643	train-r2:-38.8843	valid-r2:-44.9101
+[20]	train-rmse:66.7161	valid-rmse:65.7733	train-r2:-25.874	valid-r2:-29.7526
+[30]	train-rmse:54.8691	valid-rmse:53.8914	train-r2:-17.1772	valid-r2:-19.6453
+[40]	train-rmse:45.2471	valid-rmse:44.2232	train-r2:-11.361	valid-r2:-12.9022
+[50]	train-rmse:37.4485	valid-rmse:36.3763	train-r2:-7.46723	valid-r2:-8.4063
+[60]	train-rmse:31.1458	valid-rmse:30.0227	train-r2:-4.85695	valid-r2:-5.40738
+[70]	train-rmse:26.0842	valid-rmse:24.9151	train-r2:-3.10795	valid-r2:-3.41273
+[80]	train-rmse:22.0431	valid-rmse:20.8307	train-r2:-1.93371	valid-r2:-2.08453
+[90]	train-rmse:18.8467	valid-rmse:17.596	train-r2:-1.14458	valid-r2:-1.20095
+[100]	train-rmse:16.333	valid-rmse:15.079	train-r2:-0.610649	valid-r2:-0.616321
+[110]	train-rmse:14.3976	valid-rmse:13.1438	train-r2:-0.251553	valid-r2:-0.228071
+[120]	train-rmse:12.9264	valid-rmse:11.6884	train-r2:-0.008843	valid-r2:0.028841
+[130]	train-rmse:11.8107	valid-rmse:10.615	train-r2:0.157789	valid-r2:0.199018
+[140]	train-rmse:10.9775	valid-rmse:9.84191	train-r2:0.27243	valid-r2:0.311442
+[150]	train-rmse:10.3669	valid-rmse:9.31028	train-r2:0.351114	valid-r2:0.383821
+[160]	train-rmse:9.91473	valid-rmse:8.95345	train-r2:0.406483	valid-r2:0.430148
+[170]	train-rmse:9.58463	valid-rmse:8.71002	train-r2:0.445346	valid-r2:0.460713
+[180]	train-rmse:9.3342	valid-rmse:8.54698	train-r2:0.473952	valid-r2:0.480713
+[190]	train-rmse:9.1533	valid-rmse:8.444	train-r2:0.494144	valid-r2:0.493151
+[200]	train-rmse:9.00925	valid-rmse:8.38011	train-r2:0.50994	valid-r2:0.500792
+[210]	train-rmse:8.9096	valid-rmse:8.34286	train-r2:0.520721	valid-r2:0.50522
+[220]	train-rmse:8.83476	valid-rmse:8.31876	train-r2:0.52874	valid-r2:0.508074
+[230]	train-rmse:8.77873	valid-rmse:8.3048	train-r2:0.534698	valid-r2:0.509724
+[240]	train-rmse:8.7305	valid-rmse:8.30055	train-r2:0.539797	valid-r2:0.510226
+[250]	train-rmse:8.68686	valid-rmse:8.29274	train-r2:0.544386	valid-r2:0.511148
+[260]	train-rmse:8.64701	valid-rmse:8.29182	train-r2:0.548556	valid-r2:0.511255
+[270]	train-rmse:8.61762	valid-rmse:8.29167	train-r2:0.55162	valid-r2:0.511273
+[280]	train-rmse:8.58629	valid-rmse:8.29239	train-r2:0.554874	valid-r2:0.511188
+[290]	train-rmse:8.56102	valid-rmse:8.29167	train-r2:0.557491	valid-r2:0.511274
+[300]	train-rmse:8.53774	valid-rmse:8.29098	train-r2:0.559894	valid-r2:0.511355
+[310]	train-rmse:8.51022	valid-rmse:8.28586	train-r2:0.562727	valid-r2:0.511958
+[320]	train-rmse:8.48825	valid-rmse:8.28606	train-r2:0.564982	valid-r2:0.511934
+[330]	train-rmse:8.46216	valid-rmse:8.28142	train-r2:0.567652	valid-r2:0.512481
+[340]	train-rmse:8.43907	valid-rmse:8.27862	train-r2:0.570008	valid-r2:0.51281
+[350]	train-rmse:8.41313	valid-rmse:8.27388	train-r2:0.572647	valid-r2:0.513368
+[360]	train-rmse:8.38546	valid-rmse:8.27406	train-r2:0.575453	valid-r2:0.513347
+[370]	train-rmse:8.3591	valid-rmse:8.26991	train-r2:0.578118	valid-r2:0.513834
+[380]	train-rmse:8.33213	valid-rmse:8.26833	train-r2:0.580837	valid-r2:0.514021
+[390]	train-rmse:8.30575	valid-rmse:8.26248	train-r2:0.583486	valid-r2:0.514709
+[400]	train-rmse:8.2745	valid-rmse:8.26024	train-r2:0.586615	valid-r2:0.514971
+[410]	train-rmse:8.25301	valid-rmse:8.25832	train-r2:0.588759	valid-r2:0.515197
+[420]	train-rmse:8.23327	valid-rmse:8.25605	train-r2:0.590724	valid-r2:0.515463
+[430]	train-rmse:8.19938	valid-rmse:8.2568	train-r2:0.594086	valid-r2:0.515375
+[440]	train-rmse:8.1781	valid-rmse:8.25557	train-r2:0.596191	valid-r2:0.515519
+[450]	train-rmse:8.14441	valid-rmse:8.25454	train-r2:0.599511	valid-r2:0.515641
+[460]	train-rmse:8.11648	valid-rmse:8.25566	train-r2:0.602253	valid-r2:0.515509
+[470]	train-rmse:8.09846	valid-rmse:8.2538	train-r2:0.604017	valid-r2:0.515728
+[480]	train-rmse:8.07697	valid-rmse:8.25599	train-r2:0.606116	valid-r2:0.51547
+[490]	train-rmse:8.05615	valid-rmse:8.25306	train-r2:0.608144	valid-r2:0.515814
+[500]	train-rmse:8.03597	valid-rmse:8.25464	train-r2:0.610105	valid-r2:0.515629
+[510]	train-rmse:8.01156	valid-rmse:8.25645	train-r2:0.612469	valid-r2:0.515416
+[520]	train-rmse:7.99212	valid-rmse:8.25502	train-r2:0.614348	valid-r2:0.515585
+[530]	train-rmse:7.96634	valid-rmse:8.25538	train-r2:0.616832	valid-r2:0.515542
+[540]	train-rmse:7.94153	valid-rmse:8.25408	train-r2:0.619215	valid-r2:0.515695
+Stopping. Best iteration:
+[491]	train-rmse:8.05577	valid-rmse:8.25288	train-r2:0.608181	valid-r2:0.515835
+
+In [91]:
+
+p_test=NMF.predict(d_test)
+
+In [93]:
+
+submit= pd.DataFrame()
+submit['ID']=id_test
+submit['y']=p_test
+submit.to_csv('xgb.csv', index=False)
+
+In [94]:
+
+submit.head()
+
+Out[94]:
+	ID 	y
+0 	1 	111.333275
+1 	2 	114.134689
+2 	3 	112.794769
+3 	4 	114.530838
+4 	5 	114.789093
+
+In [ ]:
+
+ 
+

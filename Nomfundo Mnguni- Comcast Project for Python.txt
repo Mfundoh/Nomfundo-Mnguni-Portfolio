@@ -1,0 +1,305 @@
+#importing relevant libraries
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+%matplotlib inline
+#importing dataset 
+Comcast= pd.read_csv(r'C:\Users\Student 20\Desktop\Comcast_telecom_complaints_data.csv')
+Comcast.head()
+Ticket #	Customer Complaint	Date	Date_month_year	Time	Received Via	City	State	Zip code	Status	Filing on Behalf of Someone
+0	250635	Comcast Cable Internet Speeds	22-04-15	22-Apr-15	3:53:50 PM	Customer Care Call	Abingdon	Maryland	21009	Closed	No
+1	223441	Payment disappear - service got disconnected	04-08-15	04-Aug-15	10:22:56 AM	Internet	Acworth	Georgia	30102	Closed	No
+2	242732	Speed and Service	18-04-15	18-Apr-15	9:55:47 AM	Internet	Acworth	Georgia	30101	Closed	Yes
+3	277946	Comcast Imposed a New Usage Cap of 300GB that ...	05-07-15	05-Jul-15	11:59:35 AM	Internet	Acworth	Georgia	30101	Open	Yes
+4	307175	Comcast not working and no service to boot	26-05-15	26-May-15	1:25:26 PM	Internet	Acworth	Georgia	30101	Solved	No
+#checking data info
+Comcast.info()
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 2224 entries, 0 to 2223
+Data columns (total 11 columns):
+Ticket #                       2224 non-null object
+Customer Complaint             2224 non-null object
+Date                           2224 non-null object
+Date_month_year                2224 non-null object
+Time                           2224 non-null object
+Received Via                   2224 non-null object
+City                           2224 non-null object
+State                          2224 non-null object
+Zip code                       2224 non-null int64
+Status                         2224 non-null object
+Filing on Behalf of Someone    2224 non-null object
+dtypes: int64(1), object(10)
+memory usage: 191.2+ KB
+#Importing relevant libraries as I have noticed the date is not in the suitable condition to work with
+import datetime
+from time import strptime
+import calendar
+#Converting date to suitable condition
+Comcast['date']= pd.to_datetime(Comcast['Date_month_year'])
+#Daily trend
+print(Comcast['date'].value_counts().head())
+2015-06-24    218
+2015-06-23    190
+2015-06-25     98
+2015-06-26     55
+2015-06-30     53
+Name: date, dtype: int64
+Comcast['date'].value_counts().plot()
+<matplotlib.axes._subplots.AxesSubplot at 0x133f8425ba8>
+
+Comcast['Year']= pd.DatetimeIndex(Comcast['date']).year
+Comcast['Month']= pd.DatetimeIndex(Comcast['date']).month
+Comcast['month']= Comcast['Month'].apply(lambda x: calendar.month_abbr[x])
+#Monthly trend
+Comcast['month_year']= Comcast['month']+ Comcast['Year'].astype(str)
+Comcast['month_year'].value_counts().plot(kind="bar")
+<matplotlib.axes._subplots.AxesSubplot at 0x133fa8c0438>
+
+#Grouping customer complaints and creating a new column in the dataset
+Complaints =np.array(Comcast['Customer Complaint'])
+complaint_type =[]
+for complaint in Complaints:
+    complaint = str(complaint)
+    if 'comcast' in complaint.lower():
+        complaint_type.append('network')
+    elif 'internet' in complaint.lower():
+        complaint_type.append('internet')
+    else:
+        complaint_type.append('other')
+        
+Comcast['Complaint type'] =complaint_type
+Comcast.head()
+Ticket #	Customer Complaint	Date	Date_month_year	Time	Received Via	City	State	Zip code	Status	Filing on Behalf of Someone	date	Year	Month	month	month_year	Compaint Type	Complaint type
+0	250635	Comcast Cable Internet Speeds	22-04-15	22-Apr-15	3:53:50 PM	Customer Care Call	Abingdon	Maryland	21009	Closed	No	2015-04-22	2015	4	Apr	Apr2015	network	network
+1	223441	Payment disappear - service got disconnected	04-08-15	04-Aug-15	10:22:56 AM	Internet	Acworth	Georgia	30102	Closed	No	2015-08-04	2015	8	Aug	Aug2015	other	other
+2	242732	Speed and Service	18-04-15	18-Apr-15	9:55:47 AM	Internet	Acworth	Georgia	30101	Closed	Yes	2015-04-18	2015	4	Apr	Apr2015	other	other
+3	277946	Comcast Imposed a New Usage Cap of 300GB that ...	05-07-15	05-Jul-15	11:59:35 AM	Internet	Acworth	Georgia	30101	Open	Yes	2015-07-05	2015	7	Jul	Jul2015	network	network
+4	307175	Comcast not working and no service to boot	26-05-15	26-May-15	1:25:26 PM	Internet	Acworth	Georgia	30101	Solved	No	2015-05-26	2015	5	May	May2015	network	network
+#Creating a frequency table derived from the customer complaint depicting that the most common compaint is that of comcast which is in actual fact network issues
+freq_table = Comcast['Customer Complaint'].value_counts().to_frame().reset_index()
+freq_table.columns =['Complaint Type', 'Frequency']
+freq_table.head(50)
+Complaint Type	Frequency
+0	Comcast	83
+1	Comcast Internet	18
+2	Comcast Data Cap	17
+3	comcast	13
+4	Comcast Data Caps	11
+5	Comcast Billing	11
+6	Data Caps	11
+7	Unfair Billing Practices	9
+8	Comcast internet	8
+9	Comcast data cap	8
+10	Comcast data caps	8
+11	Data Cap	8
+12	Comcast/Xfinity	8
+13	Internet speed	8
+14	Billing	6
+15	Comcast billing	6
+16	Comcast service	6
+17	Comcast Service	6
+18	COMCAST	6
+19	Comcast Internet Service	5
+20	Internet Speed	5
+21	Comcast Complaint	5
+22	Comcast complaint	5
+23	Data cap	4
+24	Comcast Unfair Billing Practices	4
+25	Comcast Billing Complaint	4
+26	comcast data cap	4
+27	Comcast Internet Complaint	4
+28	Comcast internet service	4
+29	Comcast Issues	4
+30	Slow Internet	4
+31	Billing Dispute	4
+32	Comcast Billing and Service Issues	4
+33	Internet service	4
+34	availabilty	4
+35	internet	3
+36	Unfair pricing	3
+37	billing	3
+38	Complaint against Comcast	3
+39	Internet Availability	3
+40	Comcast Internet Billing	3
+41	Billing Complaint	3
+42	Internet Throttling	3
+43	Comcast Customer Service	3
+44	Unfair billing practices	3
+45	billing/service issues	3
+46	Comcast billing practices	3
+47	Comcast bait and switch	3
+48	service issues	3
+49	billing issues	3
+# Creating a new column catagorizing the status of the complaint with value as - Open and Closed. 
+# Open & Pending will now be categorized as 'Open' and Closed & Solved will be categorized as 'Closed'
+
+Comcast['Status'].unique()
+array(['Closed', 'Open', 'Solved', 'Pending'], dtype=object)
+Comcast.assign(Status1="")
+Comcast['Status1'] = ['Open' if (x=='Pending') else 'Closed' for x in Comcast['Status']]
+Complaint_state_count = pd.core.frame.DataFrame({"count": Comcast.groupby(['State']).size().sort_values(ascending=False)}).reset_index()
+Complaint_state_count.head(50)
+Complaint_state_count = pd.core.frame.DataFrame({"count": df.groupby(['State']).size().sort_values(ascending=False)}).reset_index()
+Complaint_state_count.head(10)
+
+#Georgia has the highest number of complaints
+State	count
+0	Georgia	288
+1	Florida	240
+2	California	220
+3	Illinois	164
+4	Tennessee	143
+5	Pennsylvania	130
+6	Michigan	115
+7	Washington	98
+8	Colorado	80
+9	Maryland	78
+10	New Jersey	75
+11	Texas	71
+12	Massachusetts	61
+13	Virginia	60
+14	Indiana	59
+15	Oregon	49
+16	Mississippi	39
+17	Minnesota	33
+18	Alabama	26
+19	Utah	22
+20	Arizona	20
+21	South Carolina	18
+22	District Of Columbia	16
+23	New Mexico	15
+24	Louisiana	13
+25	New Hampshire	12
+26	Connecticut	12
+27	Delaware	12
+28	West Virginia	11
+29	Kentucky	7
+30	New York	6
+31	Arkansas	6
+32	Maine	5
+33	Missouri	4
+34	North Carolina	3
+35	Vermont	3
+36	Ohio	3
+37	Kansas	2
+38	District of Columbia	1
+39	Rhode Island	1
+40	Montana	1
+41	Iowa	1
+42	Nevada	1
+Status_complaint = Comcast.groupby(['State', 'Status1']).size().unstack()
+Status_complaint
+Status1	Closed	Open
+State		
+Alabama	21.0	5.0
+Arizona	16.0	4.0
+Arkansas	6.0	NaN
+California	206.0	14.0
+Colorado	70.0	10.0
+Connecticut	11.0	1.0
+Delaware	11.0	1.0
+District Of Columbia	15.0	1.0
+District of Columbia	1.0	NaN
+Florida	236.0	4.0
+Georgia	243.0	45.0
+Illinois	158.0	6.0
+Indiana	58.0	1.0
+Iowa	1.0	NaN
+Kansas	1.0	1.0
+Kentucky	4.0	3.0
+Louisiana	12.0	1.0
+Maine	5.0	NaN
+Maryland	76.0	2.0
+Massachusetts	60.0	1.0
+Michigan	110.0	5.0
+Minnesota	31.0	2.0
+Mississippi	32.0	7.0
+Missouri	4.0	NaN
+Montana	1.0	NaN
+Nevada	1.0	NaN
+New Hampshire	11.0	1.0
+New Jersey	73.0	2.0
+New Mexico	14.0	1.0
+New York	6.0	NaN
+North Carolina	3.0	NaN
+Ohio	3.0	NaN
+Oregon	46.0	3.0
+Pennsylvania	124.0	6.0
+Rhode Island	1.0	NaN
+South Carolina	17.0	1.0
+Tennessee	129.0	14.0
+Texas	67.0	4.0
+Utah	22.0	NaN
+Vermont	3.0	NaN
+Virginia	57.0	3.0
+Washington	93.0	5.0
+West Virginia	11.0	NaN
+#status of complaints in a stacked bar chart with regards to the different states
+Comcast.groupby(['State', 'Status1']).size().unstack().plot(kind='bar',figsize=(20,20), stacked=True)
+#Georgia has the highest rate of complaints
+<matplotlib.axes._subplots.AxesSubplot at 0x133faf916a0>
+
+Percentage_unresolved = [ Status_complaint['Open'] / (Status_complaint['Open']+Status_complaint['Closed'])]
+Percentage_unresolved
+# kansas has the highest number of unresolved complaints
+[State
+ Alabama                 0.192308
+ Arizona                 0.200000
+ Arkansas                     NaN
+ California              0.063636
+ Colorado                0.125000
+ Connecticut             0.083333
+ Delaware                0.083333
+ District Of Columbia    0.062500
+ District of Columbia         NaN
+ Florida                 0.016667
+ Georgia                 0.156250
+ Illinois                0.036585
+ Indiana                 0.016949
+ Iowa                         NaN
+ Kansas                  0.500000
+ Kentucky                0.428571
+ Louisiana               0.076923
+ Maine                        NaN
+ Maryland                0.025641
+ Massachusetts           0.016393
+ Michigan                0.043478
+ Minnesota               0.060606
+ Mississippi             0.179487
+ Missouri                     NaN
+ Montana                      NaN
+ Nevada                       NaN
+ New Hampshire           0.083333
+ New Jersey              0.026667
+ New Mexico              0.066667
+ New York                     NaN
+ North Carolina               NaN
+ Ohio                         NaN
+ Oregon                  0.061224
+ Pennsylvania            0.046154
+ Rhode Island                 NaN
+ South Carolina          0.055556
+ Tennessee               0.097902
+ Texas                   0.056338
+ Utah                         NaN
+ Vermont                      NaN
+ Virginia                0.050000
+ Washington              0.051020
+ West Virginia                NaN
+ dtype: float64]
+Comcast['Received Via'].unique()
+array(['Customer Care Call', 'Internet'], dtype=object)
+resolution = Comcast.groupby(['Status1']).size()
+resolution
+Status1
+Closed    2070
+Open       154
+dtype: int64
+resolution1 = Comcast.groupby(['Status1']).size().sum()
+resolution1
+2224
+percentage_resolved = resolution[0]/resolution1*100
+percentage_resolved.round()
+93.0
+#Resolution percentage is 93% for complaints received

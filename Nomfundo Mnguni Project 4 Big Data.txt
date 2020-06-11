@@ -1,0 +1,224 @@
+PROJECT 4: Market Analysis in Banking Domain
+By Nomfundo Mnguni
+
+
+Analysis tasks to be done-:
+
+The data size is huge and the marketing team has asked you to perform the below analysis-
+
+1.Load data and create a Spark data frame
+2.Give marketing success rate (No. of people subscribed / total no. of entries)   
+3.Give marketing failure rate
+4.Give the maximum, mean, and minimum age of the average targeted customer
+5.Check the quality of customers by checking average balance, median balance of customers
+6.Check if age matters in marketing subscription for deposit
+7.Check if marital status mattered for a subscription to deposit
+8.Check if age and marital status together mattered for a subscription to deposit scheme
+9.Do feature engineering for the bank and find the right age effect on the campaign.
+
+Task 1:
+                                                                                                                                                                                                                                   
+[nimfimnguni_gmail@ip-10-0-1-10 ~]$ ls                                                                                                               
+Data-set.txt                                                                                                                                         
+[nimfimnguni_gmail@ip-10-0-1-10 ~]$ head Data-set.txt                                                                                                
+age,job,marital,education,default,balance,housing,loan,contact,day,month,duration,campaign,pdays,previous,poutcome,y                                 
+58,management,married,tertiary,no,2143,yes,no,unknown,5,may,261,1,-1,0,unknown,no                                                                    
+44,technician,single,secondary,no,29,yes,no,unknown,5,may,151,1,-1,0,unknown,no                                                                      
+33,entrepreneur,married,secondary,no,2,yes,yes,unknown,5,may,76,1,-1,0,unknown,no                                                                    
+47,blue-collar,married,unknown,no,1506,yes,no,unknown,5,may,92,1,-1,0,unknown,no                                                                     
+33,unknown,single,unknown,no,1,no,no,unknown,5,may,198,1,-1,0,unknown,no                                                                             
+35,management,married,tertiary,no,231,yes,no,unknown,5,may,139,1,-1,0,unknown,no                                                                     
+28,management,single,tertiary,no,447,yes,yes,unknown,5,may,217,1,-1,0,unknown,no                                                                     
+42,entrepreneur,divorced,tertiary,yes,2,yes,no,unknown,5,may,380,1,-1,0,unknown,no                                                                   
+58,retired,married,primary,no,121,yes,no,unknown,5,may,50,1,-1,0,unknown,no                                                                          
+[nimfimnguni_gmail@ip-10-0-1-10 ~]$ hadoop fs -put Data-set.txt Data-set.txt                                                                         
+[nimfimnguni_gmail@ip-10-0-1-10 ~]$ hadoop fs -ls                                                                                                    
+Found 3 items                                                                                                                                        
+-rw-r--r--   2 nimfimnguni_gmail nimfimnguni_gmail    3751306 2020-02-22 21:24 Data-set.txt                                                          
+drwxr-xr-x   - nimfimnguni_gmail nimfimnguni_gmail          0 2020-01-30 07:36 Simplilearn                                                           
+drwxr-xr-x   - nimfimnguni_gmail nimfimnguni_gmail          0 2020-01-30 06:39 demo1                                                                 
+[nimfimnguni_gmail@ip-10-0-1-10 ~]$ spark-shell --packages com.databricks:spark-csv_2.11:1.5.0                                                       
+Ivy Default Cache set to: /home/nimfimnguni_gmail/.ivy2/cache                                                                                        
+The jars for the packages stored in: /home/nimfimnguni_gmail/.ivy2/jars                                                                              
+:: loading settings :: url = jar:file:/opt/cloudera/parcels/CDH-5.14.0-1.cdh5.14.0.p0.24/jars/spark-assembly-1.6.0-cdh5.14.0-hadoop2.6.0-cdh5.14.0.ja
+r!/org/apache/ivy/core/settings/ivysettings.xml                                                                                                      
+com.databricks#spark-csv_2.11 added as a dependency                                                                                                  
+:: resolving dependencies :: org.apache.spark#spark-submit-parent;1.0                                                                                
+        confs: [default]                                                                                                                             
+        found com.databricks#spark-csv_2.11;1.5.0 in central                                                                                         
+        found org.apache.commons#commons-csv;1.1 in central                                                                                          
+        found com.univocity#univocity-parsers;1.5.1 in central                                                                                       
+downloading https://repo1.maven.org/maven2/com/databricks/spark-csv_2.11/1.5.0/spark-csv_2.11-1.5.0.jar ...                                          
+        [SUCCESSFUL ] com.databricks#spark-csv_2.11;1.5.0!spark-csv_2.11.jar (8ms)                                                                   
+downloading https://repo1.maven.org/maven2/org/apache/commons/commons-csv/1.1/commons-csv-1.1.jar ...                                                
+        [SUCCESSFUL ] org.apache.commons#commons-csv;1.1!commons-csv.jar (3ms)                                                                       
+downloading https://repo1.maven.org/maven2/com/univocity/univocity-parsers/1.5.1/univocity-parsers-1.5.1.jar ...                                     
+        [SUCCESSFUL ] com.univocity#univocity-parsers;1.5.1!univocity-parsers.jar (7ms)                                                              
+:: resolution report :: resolve 882ms :: artifacts dl 22ms                                                                                           
+        :: modules in use:                                                                                                                           
+        com.databricks#spark-csv_2.11;1.5.0 from central in [default]                                                                                
+        com.univocity#univocity-parsers;1.5.1 from central in [default]                                                                              
+        org.apache.commons#commons-csv;1.1 from central in [default]                                                                                 
+        ---------------------------------------------------------------------                                                                        
+        |                  |            modules            ||   artifacts   |                                                                        
+        |       conf       | number| search|dwnlded|evicted|| number|dwnlded|                                                                        
+        ---------------------------------------------------------------------                                                                        
+        |      default     |   3   |   3   |   3   |   0   ||   3   |   3   |                                                                        
+        ---------------------------------------------------------------------                                                                        
+:: retrieving :: org.apache.spark#spark-submit-parent                                                                                                
+        confs: [default]                                                                                                                             
+        3 artifacts copied, 0 already retrieved (344kB/8ms)                                                                                          
+Setting default log level to "WARN".                                                                                                                 
+To adjust logging level use sc.setLogLevel(newLevel).                                                                                                
+Welcome to                                                                                                                                           
+      ____              __                                                                                                                           
+     / __/__  ___ _____/ /__                                                                                                                         
+    _\ \/ _ \/ _ `/ __/  '_/                                                                                                                         
+   /___/ .__/\_,_/_/ /_/\_\   version 1.6.0                                                                                                          
+      /_/                                                                                                                                            
+                                                                                                                                                     
+Using Scala version 2.10.5 (Java HotSpot(TM) 64-Bit Server VM, Java 1.8.0_144)                                                                       
+Type in expressions to have them evaluated.                                                                                                          
+Type :help for more information.                                                                                                                     
+20/02/22 21:32:26 WARN util.Utils: Service 'SparkUI' could not bind on port 40001. Attempting port 40002.                                            
+20/02/22 21:32:26 WARN util.Utils: Service 'SparkUI' could not bind on port 40002. Attempting port 40003.                                            
+20/02/22 21:32:26 WARN util.Utils: Service 'SparkUI' could not bind on port 40003. Attempting port 40004.                                            
+Spark context available as sc (master = yarn-client, app id = application_1579257682689_7499).                                                       
+SQL context available as sqlContext.                                                                                                                 
+                                                                                                                                                     
+scala> val df = sqlContext.read.format("com.databricks.spark.csv").option("header","true").option("inferSchema","true").option("delimeter",",").load(
+"Data-set.txt")
+df: org.apache.spark.sql.DataFrame = [age: int, job: string, marital: string, education: string, default: string, balance: int, housing: string, loan
+: string, contact: string, day: int, month: string, duration: int, campaign: int, pdays: int, previous: int, poutcome: string, y: string]            
+                                                                                                                                                     
+scala> df.show                                                                                                                                       
++---+------------+--------+---------+-------+-------+-------+----+-------+---+-----+--------+--------+-----+--------+--------+---+                   
+|age|         job| marital|education|default|balance|housing|loan|contact|day|month|duration|campaign|pdays|previous|poutcome|  y|                   
++---+------------+--------+---------+-------+-------+-------+----+-------+---+-----+--------+--------+-----+--------+--------+---+                   
+| 58|  management| married| tertiary|     no|   2143|    yes|  no|unknown|  5|  may|     261|       1|   -1|       0| unknown| no|                   
+| 44|  technician|  single|secondary|     no|     29|    yes|  no|unknown|  5|  may|     151|       1|   -1|       0| unknown| no|                   
+| 33|entrepreneur| married|secondary|     no|      2|    yes| yes|unknown|  5|  may|      76|       1|   -1|       0| unknown| no|                   
+| 47| blue-collar| married|  unknown|     no|   1506|    yes|  no|unknown|  5|  may|      92|       1|   -1|       0| unknown| no|                   
+| 33|     unknown|  single|  unknown|     no|      1|     no|  no|unknown|  5|  may|     198|       1|   -1|       0| unknown| no|                   
+| 35|  management| married| tertiary|     no|    231|    yes|  no|unknown|  5|  may|     139|       1|   -1|       0| unknown| no|                   
+| 28|  management|  single| tertiary|     no|    447|    yes| yes|unknown|  5|  may|     217|       1|   -1|       0| unknown| no|                   
+| 42|entrepreneur|divorced| tertiary|    yes|      2|    yes|  no|unknown|  5|  may|     380|       1|   -1|       0| unknown| no|                   
+| 58|     retired| married|  primary|     no|    121|    yes|  no|unknown|  5|  may|      50|       1|   -1|       0| unknown| no|                   
+| 43|  technician|  single|secondary|     no|    593|    yes|  no|unknown|  5|  may|      55|       1|   -1|       0| unknown| no|                   
+| 41|      admin.|divorced|secondary|     no|    270|    yes|  no|unknown|  5|  may|     222|       1|   -1|       0| unknown| no|                   
+| 29|      admin.|  single|secondary|     no|    390|    yes|  no|unknown|  5|  may|     137|       1|   -1|       0| unknown| no|                   
+| 53|  technician| married|secondary|     no|      6|    yes|  no|unknown|  5|  may|     517|       1|   -1|       0| unknown| no|                   
+| 58|  technician| married|  unknown|     no|     71|    yes|  no|unknown|  5|  may|      71|       1|   -1|       0| unknown| no|                   
+| 57|    services| married|secondary|     no|    162|    yes|  no|unknown|  5|  may|     174|       1|   -1|       0| unknown| no|                   
+| 51|     retired| married|  primary|     no|    229|    yes|  no|unknown|  5|  may|     353|       1|   -1|       0| unknown| no|                   
+| 45|      admin.|  single|  unknown|     no|     13|    yes|  no|unknown|  5|  may|      98|       1|   -1|       0| unknown| no|                   
+| 57| blue-collar| married|  primary|     no|     52|    yes|  no|unknown|  5|  may|      38|       1|   -1|       0| unknown| no|                   
+| 60|     retired| married|  primary|     no|     60|    yes|  no|unknown|  5|  may|     219|       1|   -1|       0| unknown| no|                   
+| 33|    services| married|secondary|     no|      0|    yes|  no|unknown|  5|  may|      54|       1|   -1|       0| unknown| no|                   
++---+------------+--------+---------+-------+-------+-------+----+-------+---+-----+--------+--------+-----+--------+--------+---+                   
+only showing top 20 rows                                                                                                                             
+ 
+                                                                                                                                                    
+  
+Task 2:
+                                                                                                                                                   
+scala> val totalcount = df.count().toDouble                                                                                                          
+totalcount: Double = 45211.0
+                                                                                                                                                     
+scala> val subscription_count= df.filter($"y"==="yes").count().toDouble                                                                              
+subscription_count: Double = 5289.0
+                                                                                                                                                     
+scala> val success_rate= subscription_count/totalcount                                                                                               
+success_rate: Double = 0.11698480458295547                                                                                                           
+   
+Task 3:
+                                                                                                                                           
+scala> val failure_rate= 1-success_rate                                                                                                              
+failure_rate: Double = 0.8830151954170445                                                                                                            
+   
+Task 4:
+                                                                                                                                                  
+scala> df.select(min($"age"), max($"age"), avg($"age")).show                                                                                         
++--------+--------+-----------------+
+|min(age)|max(age)|         avg(age)|                                                                                                                
++--------+--------+-----------------+                                                                                                                
+|      18|      95|40.93621021432837|                                                                                                                
++--------+--------+-----------------+                                                                                                                
+
+
+Task 5:                                                                                                                                                     
+                                                                                                                                                     
+scala> df.registerTempTable("Nomfundo102")                                                                                                           
+                                                                                                                                                     
+scala> sqlContext.sql("select percentile(balance,0.5) as median ,avg(balance) as average from Nomfundo102").show                                     
++------+------------------+
+|median|           average|                                                                                                                          
++------+------------------+                                                                                                                          
+| 448.0|1362.2720576850766|                                                                                                                          
++------+------------------+                                                                                                                          
+
+ 
+Task 6:
+                                                                                                                                                    
+                                                                                                                                                     
+scala> df.groupBy("y").agg(avg($"age")).show                                                                                                         
++---+------------------+
+|  y|          avg(age)|                                                                                                                             
++---+------------------+                                                                                                                             
+| no| 40.83898602274435|                                                                                                                             
+|yes|41.670069956513515|                                                                                                                             
++---+------------------+       
+
+
+Task 7:
+
+scala> df.groupBy("y").agg(count($"marital")).show 
++---+--------------+
+|  y|count(marital)|                                                                                                                                 
++---+--------------+                                                                                                                                 
+| no|         39922|                                                                                                                                 
+|yes|          5289|                                                                                                                                 
++---+--------------+                                                                                                                                 
+  
+Task 8:                                                                                                                                                   
+                                                                                                                                                     
+scala> df.groupBy("marital","y").count().sort($"count".desc).show                                                                                    
++--------+---+-----+
+| marital|  y|count|                                                                                                                                 
++--------+---+-----+                                                                                                                                 
+| married| no|24459|                                                                                                                                 
+|  single| no|10878|                                                                                                                                 
+|divorced| no| 4585|                                                                                                                                 
+| married|yes| 2755|                                                                                                                                 
+|  single|yes| 1912|                                                                                                                                 
+|divorced|yes|  622|                                                                                                                                 
++--------+---+-----+ 
+
+Task 9:
+
+scala> df.groupBy("age","y").count().sort($"count".desc).show
++---+---+-----+
+|age|  y|count|                                                                                                                                      
++---+---+-----+                                                                                                                                      
+| 32| no| 1864|                                                                                                                                      
+| 31| no| 1790|                                                                                                                                      
+| 33| no| 1762|                                                                                                                                      
+| 34| no| 1732|                                                                                                                                      
+| 35| no| 1685|                                                                                                                                      
+| 36| no| 1611|                                                                                                                                      
+| 30| no| 1540|                                                                                                                                      
+| 37| no| 1526|                                                                                                                                      
+| 39| no| 1344|                                                                                                                                      
+| 38| no| 1322|                                                                                                                                      
+| 40| no| 1239|                                                                                                                                      
+| 41| no| 1171|                                                                                                                                      
+| 42| no| 1131|                                                                                                                                      
+| 45| no| 1110|                                                                                                                                      
+| 43| no| 1058|                                                                                                                                      
+| 46| no| 1057|                                                                                                                                      
+| 44| no| 1043|                                                                                                                                      
+| 29| no| 1014|                                                                                                                                      
+| 47| no|  975|                                                                                                                                      
+| 48| no|  915|                                                                                                                                      
++---+---+-----+                                                                                                                                      
+only showing top 20 rows   
